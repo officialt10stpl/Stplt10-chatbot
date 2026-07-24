@@ -7,7 +7,8 @@ const { GoogleGenAI } = require('@google/genai');
 initializeApp();
 const db = getFirestore();
 
-const apiKey = process.env.GEMINI_API_KEY;
+// यहाँ AI क्लाइंट को सही तरीके से इनिशियलाइज किया गया है
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const app = express();
 app.use(express.json());
