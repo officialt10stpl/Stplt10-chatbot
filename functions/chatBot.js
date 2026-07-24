@@ -133,7 +133,7 @@ app.post('/api/chat', async (req, res) => {
       const geminiPrompt = `
       तुम STPL T10 क्रिकेट लीग के आधिकारिक AI सहायक हो। 
       नियम:
-      1. यूजर के सवाल का जवाब बिल्कुल छोटे, सटीक और हिंग्लिश/हिंदी के दोस्ताना अंदाज ("भाई" वाले टोन में) में दो।
+      1. यूजर के सवाल का जवाब बिल्कुल छोटे, सटीक और हिंग्लिश/हिंदी के दोस्ताना अंदाज ("भाई" वाले टोन में) दो।
       2. कभी भी रोबोट की तरह लंबे पैराग्राफ मत लिखो।
       3. किसी भी शहर या ओवरऑल रजिस्ट्रेशन के कुल आंकड़े (Exact Counts) सार्वजनिक रूप से मत बताओ।
       4. ट्रायल्स August 2026 से शुरू होंगे, बैट्समैन का चैलेंज 1 ओवर में 16 रन और बॉलर का 14 रन डिफेंड करना है। फीस ₹999 है।
@@ -142,17 +142,17 @@ app.post('/api/chat', async (req, res) => {
       `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: geminiPrompt,
       });
 
-      const aiReply = response.text ? response.text.trim() : "अरे भाई, बात समझ गया! इसकी पूरी जानकारी वेबसाइट पर मिल जाएगी या सपोर्ट टीम से बात कर लो।";
+      const aiReply = response.text ? response.text.trim() : "अरे भाई, बढ़िया सवाल है! इसकी अधिक जानकारी के लिए वेबसाइट के होमपेज पर विजिट करें या WhatsApp सपोर्ट से जुड़ें।";
       return res.json({ reply: aiReply });
 
     } catch (aiError) {
       console.error("Gemini API Error:", aiError);
       return res.json({ 
-        reply: "अरे भाई, बात समझ गया! इसकी पूरी जानकारी वेबसाइट पर मिल जाएगी या सपोर्ट टीम से बात कर लो।" 
+        reply: `अरे भाई, आपका सवाल मिल गया है! ${userMsg} के बारे में पूरी डिटेल आपको जल्द ही वेबसाइट पर अपडेट मिलेगी।` 
       });
     }
 
