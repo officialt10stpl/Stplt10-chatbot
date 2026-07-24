@@ -58,8 +58,11 @@
           });
           const data = await response.json();
 
+          // यहाँ सुनिश्चित कर रहे हैं कि AI का रिस्पांस सही से स्क्रीन पर दिखे
+          const botReply = data.reply ? data.reply : "अरे भाई, सर्वर से सही जवाब नहीं मिला!";
+
           // बॉट का जवाब स्क्रीन पर दिखाएं
-          messagesDiv.innerHTML += `<div style="background: #e2e8f0; padding: 8px 12px; border-radius: 8px; max-width: 80%; color: #334155;">${data.reply}</div>`;
+          messagesDiv.innerHTML += `<div style="background: #e2e8f0; padding: 8px 12px; border-radius: 8px; max-width: 80%; color: #334155;">${botReply}</div>`;
           messagesDiv.scrollTop = messagesDiv.scrollHeight;
         } catch (err) {
           messagesDiv.innerHTML += `<div style="background: #fee2e2; padding: 8px 12px; border-radius: 8px; max-width: 80%; color: #991b1b;">अरे भाई, सर्वर से कनेक्ट करने में दिक्कत आ रही है। चेक करो कि सर्वर चालू है या नहीं!</div>`;
