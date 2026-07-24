@@ -8,10 +8,6 @@
     ],
     "rewrites": [
       {
-        "source": "/api/chat",
-        "function": "chatBot"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
