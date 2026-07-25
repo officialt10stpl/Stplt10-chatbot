@@ -75,14 +75,13 @@ export default function Home() {
           {/* Single Mentor Card */}
           <div className="bg-white/[0.03] border border-yellow-500/40 p-6 rounded-3xl text-center hover:border-yellow-500 transition shadow-2xl">
             <img 
-              src="/images/mentor.jpeg" 
+              src="/mentor.png" 
               alt="Dilshan Munaweera" 
               className="w-28 h-28 mx-auto rounded-full object-cover border-2 border-yellow-500 mb-4 shadow-lg"
             />
             <h4 className="text-xl font-black text-white">Dilshan Munaweera</h4>
             <p className="text-sm text-yellow-400 font-mono mt-1 font-bold">Chief Mentor</p>
             <p className="text-xs text-yellow-500/90 font-semibold mt-1">Former Sri Lankan Cricketer</p>
-            <p className="text-xs text-gray-400 mt-2">छोटे शहरों और गली के क्रिकेटर्स को नेशनल मंच तक पहुँचाने के लिए मार्गदर्शन।</p>
           </div>
         </div>
 
