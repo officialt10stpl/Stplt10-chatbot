@@ -7,7 +7,6 @@ const { GoogleGenAI } = require('@google/genai');
 initializeApp();
 const db = getFirestore();
 
-// Google Gemini AI सेटअप
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const app = express();
@@ -20,7 +19,7 @@ app.post('/api/chat', async (req, res) => {
     const userMsg = message ? message.trim() : "";
     const lowerMsg = userMsg.toLowerCase();
 
-    // 0. सुरक्षा फिल्टर (सेंसिटिव डेटा के लिए)
+    // 0. सुरक्षा फिल्टर
     if (lowerMsg.includes("आधार") || lowerMsg.includes("aadhaar") || lowerMsg.includes("adhar") || lowerMsg.includes("rrn") || lowerMsg.includes("mynumber")) {
       return res.json({ 
         reply: "भाई, अपनी संवेदनशील आईडी चैट में कभी भी सीधे टाइप मत करो! अपनी जानकारी पूरी तरह सुरक्षित रखो।" 
@@ -34,7 +33,7 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    // 2. रेफरल स्टेटस चेक (डेटाबेस से कनेक्टेड)
+    // 2. रेफरल स्टेटस चेक
     if (lowerMsg.includes("रेफरल") || lowerMsg.includes("referral") || lowerMsg.includes("cashback") || lowerMsg.includes("कैशबैक")) {
       if (!mobileNumber) {
         return res.json({ reply: "भाई, अपना रजिस्टर्ड मोबाइल नंबर या Reg ID बताओ, तभी तो चेक करके बता पाऊंगा!" });
@@ -48,29 +47,27 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    // 3. 100% Direct Gemini AI with Complete STPL Master Knowledge
+    // 3. 100% Direct Gemini AI with Complete Conversational Freedom
     try {
       const systemPrompt = `
-      तुम STPL T10 (Street Talent Premier League T10) क्रिकेट लीग के आधिकारिक, सुपर-इंटेलिजेंट, जिंदादिल और दोस्ताना AI सहायक हो। तुम्हारा बात करने का अंदाज़ बिल्कुल Google Gemini जैसा नेचुरल, हिंग्लिश/हिंदी में "भाई" वाले जोशीले और दोस्ताना टोन में होना चाहिए।
+      तुम STPL T10 (Street Talent Premier League T10) क्रिकेट लीग के आधिकारिक, सुपर-इंटेलिजेंट, जिंदादिल और दोस्ताना AI सहायक हो। तुम्हारा बात करने का अंदाज़ बिल्कुल Google Gemini या ChatGPT जैसा नेचुरल, हिंग्लिश/हिंदी में "भाई" वाले जोशीले और दोस्ताना टोन में होना चाहिए।
       
-      STPL T10 की संपूर्ण मास्टर जानकारी (जो तुम्हें हमेशा याद रखनी है और यूज़र को बतानी है):
+      STPL T10 की संपूर्ण मास्टर जानकारी (जो तुम्हें हमेशा याद रखनी है):
       - परिचय: STPL T10 छोटे शहरों, गाँवों और गली के क्रिकेटर्स को नेशनल मंच और लाइव ऑक्शन का मौका देने वाली सबसे बड़ी लीग है।
       - ट्रायल्स की तारीख: ट्रायल्स August 2026 से शुरू होंगे।
       - लोकेशन: भारत के विभिन्न राज्यों में 50+ शहरों के चुनिंदा ग्राउंड्स पर ट्रायल्स हो रहे हैं।
       - रजिस्ट्रेशन फीस: मात्र ₹999 है, जिसमें ट्रायल, गोल्डेन टिकट और STPL की आधिकारिक जर्सी मिलती है। मैदान पर ट्रायल देने के लिए कोई एक्स्ट्रा फीस नहीं लगती।
-      - आयु वर्ग (Categories): 
-        1. Junior Category: 18 साल से कम उम्र के खिलाड़ियों के लिए।
-        2. Senior Category: 18 साल से अधिक उम्र के खिलाड़ियों के लिए।
-      - खेल के नियम (Challenges):
-        - बैट्समैन (Batsman): 1 ओवर में 16 रन बनाने हैं। सफल होने पर सीधा Final Round में चयन!
-        - बॉलर (Bowler): 1 ओवर में 14 रन डिफेंड करने हैं। सफल होने पर सीधा Final Round में चयन!
-        - ऑलराउंडर (All-rounder): बैटिंग (16 रन) या बॉलिंग (14 रन डिफेंड) में से किसी एक में क्वालीफाई करना होगा।
-      - ऑक्शन और इनाम: Final राउंड के टॉप खिलाड़ियों का 10 फ्रेंचाइजी टीमों के बीच लाइव ऑक्शन होगा, जिसमें अधिकतम ₹2 लाख तक की बोली लग सकती है!
-      - कैशबैक / रेफरल ऑफर: 3 रेफरल पर ₹200, 5 पर ₹400 और 10 रेफरल पर ₹999 का फुल रिफंड मिलता है।
+      - आयु वर्ग (Categories): Junior Category (18 साल से कम) और Senior Category (18 साल से अधिक)।
+      - खेल के नियम (Challenges): बैट्समैन (1 ओवर में 16 रन), बॉलर (1 ओवर में 14 रन डिफेंड), ऑलराउंडर (किसी एक में क्वालीफाई)।
+      - ऑक्शन और इनाम: Final राउंड के टॉप खिलाड़ियों का 10 फ्रेंचाइजी टीमों के बीच लाइव ऑक्शन होगा (अधिकतम ₹2 लाख तक की बोली)।
+      - कैशबैक / ऑफर (Referral Cashback): 
+        * 3 रेफरल पर ₹200 कैशबैक!
+        * 5 रेफरल पर ₹400 कैशबैक!
+        * 10 रेफरल पर ₹999 यानी पूरी फीस का फुल रिफंड!
       - आधिकारिक वेबसाइट: stplt10.in
       
       नियम:
-      - रोबोट की तरह लंबे पैराग्राफ मत लिखो। बिल्कुल छोटे, सटीक, जोशीले और मज़ेदार जवाब दो।
+      - कभी भी रोबोट की तरह यह मत कहो कि "वेबसाइट चेक करो और खतम"। हमेशा पूरी जानकारी प्यार और जोश के साथ समझाओ, और जरूरत पड़ने पर वेबसाइट (stplt10.in) या WhatsApp सपोर्ट का दोस्ताना तरीके से सुझाव दो।
       
       यूजर का संदेश: "${userMsg}"
       `;
@@ -97,7 +94,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('STPL T10 Pro Bot Server running on port 5000 🚀');
+  res.send('STPL T10 Master AI Bot Server running on port 5000 🚀');
 });
 
 const PORT = process.env.PORT || 5000;
