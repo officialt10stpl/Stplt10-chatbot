@@ -1,7 +1,3 @@
-import { useState, useEffect } from 'react';
-import { db } from '../lib/firebase.ts';
-import { collection, query, where, getCountFromServer } from 'firebase/firestore';
-
 // 1. Hero Component
 function Hero() {
   return (
@@ -58,50 +54,38 @@ function Hero() {
 
 // 2. Main Home Page
 export default function Home() {
-  const [displayCount, setDisplayCount] = useState<number>(43);
-
-  useEffect(() => {
-    async function fetchBahraichCount() {
-      try {
-        const q = query(collection(db, "players"), where("city", "==", "Bahraich"));
-        const snapshot = await getCountFromServer(q);
-        const realCount = snapshot.data().count;
-
-        if (realCount > 43) {
-          setDisplayCount(realCount);
-        } else {
-          setDisplayCount(43);
-        }
-      } catch (error) {
-        console.error("Error fetching count:", error);
-      }
-    }
-    fetchBahraichCount();
-  }, []);
-
   return (
     <div className="bg-[#0B0B0B] text-white min-h-screen">
       <Hero />
       
-      {/* 🔥 सिर्फ बहराइच रजिस्ट्रेशन काउंटर और टैगलाइन ब्लॉक */}
-      <div className="max-w-7xl mx-auto px-6 pt-10">
-        <div className="bg-gradient-to-r from-yellow-500/15 via-black to-yellow-500/15 border-2 border-yellow-500/60 p-6 rounded-3xl text-center shadow-[0_0_25px_rgba(234,179,8,0.2)] overflow-hidden">
-          <div className="flex flex-col md:flex-row items-center justify-around gap-4">
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold">Total Bahraich Registrations</p>
-              <p className="text-3xl md:text-4xl font-black text-yellow-400 mt-1">{displayCount}+</p>
-            </div>
-            <div className="bg-yellow-500/10 border border-yellow-500/30 px-6 py-3 rounded-2xl max-w-lg">
-              <p className="text-xs md:text-sm font-bold text-yellow-300 animate-pulse">
-                ⚡ इतने रजिस्ट्रेशन हो चुके हैं! जल्दी करें, आप भी अपना रजिस्ट्रेशन पूरा करें!
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Features Section */}
       <section className="py-20 px-6 max-w-7xl mx-auto">
+        
+        {/* 🌟 Official Chief Mentor Section */}
+        <div className="max-w-md mx-auto mb-16 px-4">
+          <div className="text-center mb-6">
+            <span className="bg-yellow-500/10 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full border border-yellow-500/30 uppercase tracking-widest">
+              STPL Legend Mentor
+            </span>
+            <h3 className="text-2xl md:text-3xl font-black text-white mt-2 uppercase">
+              हमारे ऑफिशियल <span className="text-yellow-500">मेंटर</span>
+            </h3>
+          </div>
+
+          {/* Single Mentor Card */}
+          <div className="bg-white/[0.03] border border-yellow-500/40 p-6 rounded-3xl text-center hover:border-yellow-500 transition shadow-2xl">
+            <img 
+              src="/images/mentor.jpeg" 
+              alt="Dilshan Munaweera" 
+              className="w-28 h-28 mx-auto rounded-full object-cover border-2 border-yellow-500 mb-4 shadow-lg"
+            />
+            <h4 className="text-xl font-black text-white">Dilshan Munaweera</h4>
+            <p className="text-sm text-yellow-400 font-mono mt-1 font-bold">Chief Mentor</p>
+            <p className="text-xs text-yellow-500/90 font-semibold mt-1">Former Sri Lankan Cricketer</p>
+            <p className="text-xs text-gray-400 mt-2">छोटे शहरों और गली के क्रिकेटर्स को नेशनल मंच तक पहुँचाने के लिए मार्गदर्शन।</p>
+          </div>
+        </div>
+
         <div className="text-center mb-16">
           <h3 className="text-yellow-500 font-bold tracking-[0.3em] uppercase mb-4 text-sm">The League</h3>
           <h2 className="text-5xl md:text-6xl font-extrabold text-white">Built For Champions</h2>
