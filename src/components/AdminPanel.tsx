@@ -15,7 +15,7 @@ interface Player {
   photo?: string;
   transactionId?: string;
   paymentReceipt?: string;
-  category?: string; 
+  category?: number | string; 
   age?: number;
   approvedByAdmin?: boolean;
   createdAt: any;
@@ -26,8 +26,8 @@ interface Player {
   dob?: string;
   feePaid?: number;
   referredBy?: string;
-  totalReferrals?: number;        // 👈 यहाँ जोड़ दिया गया है
-  currentCycleReferrals?: number; // 👈 यहाँ जोड़ दिया गया है
+  totalReferrals?: number;
+  currentCycleReferrals?: number;
 }
 
 export default function AdminPanel() {
@@ -64,21 +64,26 @@ export default function AdminPanel() {
         return;
       }
 
-      const dataList = players.map(p => ({
-        "Registration ID": p.generatedId || "N/A",
-        "Player Name": p.name || "N/A",
-        "Mobile": p.mobile || "N/A",
-        "Category": p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior'),
-        "State": p.state || "N/A",
-        "City": p.city || "N/A",
-        "Role": p.role || "N/A",
-        "Fee Paid": p.feePaid || 999,
-        "Transaction ID": p.transactionId || "N/A",
-        "Payment Status": p.paymentStatus || "N/A",
-        "Referred By": p.referredBy || "Direct",
-        "Total Referrals": p.totalReferrals || 0,
-        "Current Cycle": p.currentCycleReferrals || 0,
-      }));
+      const dataList = players.map(p => {
+        // उस प्लेयर के कोड से कितने लोगों ने रजिस्टर किया है उनकी लिस्ट निकालना
+        const referredList = players.filter(ref => ref.referredBy && p.generatedId && ref.referredBy.toLowerCase().trim() === p.generatedId.toLowerCase().trim());
+        
+        return {
+          "Registration ID": p.generatedId || "N/A",
+          "Player Name": p.name || "N/A",
+          "Mobile": p.mobile || "N/A",
+          "Category": p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior'),
+          "State": p.state || "N/A",
+          "City": p.city || "N/A",
+          "Role": p.role || "N/A",
+          "Fee Paid": p.feePaid || 999,
+          "Transaction ID": p.transactionId || "N/A",
+          "Payment Status": p.paymentStatus || "N/A",
+          "Referred By": p.referredBy || "Direct",
+          "Total Referrals Count": referredList.length,
+          "Referred Players Names": referredList.map(r => r.name).join(', ') || "None",
+        };
+      });
 
       const worksheet = XLSX.utils.json_to_sheet(dataList);
       const workbook = XLSX.utils.book_new();
@@ -146,7 +151,7 @@ export default function AdminPanel() {
     if (!selectedCategory) return [];
     return approvedPlayers.filter(p => {
       const cat = p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior');
-      return cat.toLowerCase() === selectedCategory.toLowerCase();
+      return String(cat).toLowerCase() === selectedCategory.toLowerCase();
     });
   }, [approvedPlayers, selectedCategory]);
 
@@ -188,7 +193,7 @@ export default function AdminPanel() {
   if (!isLoggedIn) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#050505] text-white p-4">
-        <input type="password" placeholder="ADMIN PASSWORD" onChange={(e) => setPassword(e.target.value)} className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4 text-white text-center"/>
+        <input type="password" placeholder="ADMIN PASSWORD" onChange={(e) => setPassword(e.target.value)} className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4 text-white text-center outline-none focus:border-yellow-500"/>
         <button onClick={() => password === "SVPSTPLt10@" && setIsLoggedIn(true)} className="bg-yellow-500 text-black px-8 py-3 rounded-xl font-black cursor-pointer">LOGIN</button>
       </div>
     );
@@ -201,7 +206,7 @@ export default function AdminPanel() {
       <div className="flex justify-between items-center max-w-6xl mx-auto mb-6 bg-white/[0.03] p-4 rounded-2xl border border-white/10">
         <div>
           <h3 className="font-bold text-yellow-500">📥 Data Management</h3>
-          <p className="text-xs text-gray-400">Download complete player database in Excel format.</p>
+          <p className="text-xs text-gray-400">Download complete player database with referrals in Excel.</p>
         </div>
         <button 
           onClick={exportToExcel}
@@ -291,7 +296,7 @@ export default function AdminPanel() {
                 >
                   <div className="text-2xl font-black uppercase mb-2">🟢 JUNIOR CATEGORY</div>
                   <div className="text-sm text-yellow-400 group-hover:text-black font-mono font-bold">
-                    {approvedPlayers.filter(p => (p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior')) === 'Junior').length} Players Approved
+                    {approvedPlayers.filter(p => String(p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior')).toLowerCase() === 'junior').length} Players Approved
                   </div>
                 </button>
 
@@ -301,7 +306,7 @@ export default function AdminPanel() {
                 >
                   <div className="text-2xl font-black uppercase mb-2">🔵 SENIOR CATEGORY</div>
                   <div className="text-sm text-blue-400 group-hover:text-white font-mono font-bold">
-                    {approvedPlayers.filter(p => (p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior')) === 'Senior').length} Players Approved
+                    {approvedPlayers.filter(p => String(p.category || (p.age && p.age < 18 ? 'Junior' : 'Senior')).toLowerCase() === 'senior').length} Players Approved
                   </div>
                 </button>
               </div>
@@ -380,38 +385,69 @@ export default function AdminPanel() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPlayers.length > 0 ? (
-                  filteredPlayers.map((p) => (
-                    <div key={p.id} className="bg-white/[0.03] p-6 rounded-3xl border border-white/10 hover:border-yellow-500 transition-all shadow-xl space-y-4">
-                      <div className="flex items-center gap-4">
-                        <img src={p.photo || "https://ui-avatars.com/api/?name=" + p.name} className="w-16 h-16 rounded-2xl object-cover border border-yellow-500/50" />
-                        <div>
-                          <h3 className="text-lg font-black">{p.name}</h3>
-                          <p className="text-blue-400 font-mono text-xs">{p.generatedId}</p>
+                  filteredPlayers.map((p) => {
+                    // 🔍 इस खिलाड़ी के Reg ID से किन-किन लोगों ने रजिस्टर किया है, उनकी सूची निकालना
+                    const playerReferrals = players.filter(ref => 
+                      ref.referredBy && p.generatedId && 
+                      ref.referredBy.toLowerCase().trim() === p.generatedId.toLowerCase().trim()
+                    );
+
+                    return (
+                      <div key={p.id} className="bg-white/[0.03] p-6 rounded-3xl border border-white/10 hover:border-yellow-500 transition-all shadow-xl space-y-4">
+                        <div className="flex items-center gap-4">
+                          <img src={p.photo || "https://ui-avatars.com/api/?name=" + p.name} className="w-16 h-16 rounded-2xl object-cover border border-yellow-500/50" />
+                          <div>
+                            <h3 className="text-lg font-black">{p.name}</h3>
+                            <p className="text-blue-400 font-mono text-xs">{p.generatedId}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 text-sm text-gray-400 font-mono">
+                          <p>📱 <span className="text-white ml-2">{p.mobile}</span></p>
+                          <p>🔑 <span className="text-white ml-2">{p.loginPassword}</span></p>
+                          <p>💳 <span className="text-white ml-2">{p.transactionId || "N/A"}</span></p>
+                          <p>💰 <span className="text-green-400 ml-2 font-bold">₹{p.feePaid || 999}</span></p>
+                          <p>🎁 <span className="text-yellow-400 ml-2 font-bold">Referred By: {p.referredBy || "Direct"}</span></p>
+                        </div>
+
+                        {/* 👥 यहाँ प्लेयर कार्ड पर सीधा रेफरल नंबर और उनके नाम दिखेंगे */}
+                        <div className="bg-black/30 p-3 rounded-2xl border border-white/5 space-y-1">
+                          <div className="flex justify-between items-center text-xs font-bold">
+                            <span className="text-gray-400">👥 Total Referrals:</span>
+                            <span className="text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full font-mono">
+                              {playerReferrals.length} Players
+                            </span>
+                          </div>
+                          {playerReferrals.length > 0 ? (
+                            <div className="text-[11px] text-gray-300 mt-2 max-h-20 overflow-y-auto space-y-1 font-mono">
+                              {playerReferrals.map((ref, idx) => (
+                                <div key={idx} className="bg-white/5 px-2 py-1 rounded flex justify-between">
+                                  <span>{idx + 1}. {ref.name}</span>
+                                  <span className="text-green-400">{ref.generatedId || "Joined"}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-gray-500 italic mt-1">No referrals yet.</p>
+                          )}
+                        </div>
+
+                        <button 
+                          onClick={() => sendWhatsAppMessage(p)}
+                          className="w-full py-2 bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          💬 Send WhatsApp Details Again
+                        </button>
+
+                        <div className="flex gap-2 pt-2">
+                          <button className="flex-1 py-2 rounded-xl font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 text-xs">
+                            APPROVED
+                          </button>
+                          <button onClick={() => deletePlayer(p.id)} className="px-4 py-2 bg-white/5 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition cursor-pointer text-xs">DELETE</button>
                         </div>
                       </div>
-                      <div className="space-y-1 text-sm text-gray-400 font-mono">
-                        <p>📱 <span className="text-white ml-2">{p.mobile}</span></p>
-                        <p>🔑 <span className="text-white ml-2">{p.loginPassword}</span></p>
-                        <p>💳 <span className="text-white ml-2">{p.transactionId || "N/A"}</span></p>
-                        <p>💰 <span className="text-green-400 ml-2 font-bold">₹{p.feePaid || 999}</span></p>
-                        <p>🎁 <span className="text-yellow-400 ml-2 font-bold">{p.referredBy || "Direct"}</span></p>
-                      </div>
-
-                      <button 
-                        onClick={() => sendWhatsAppMessage(p)}
-                        className="w-full py-2 bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2"
-                      >
-                        💬 Send WhatsApp Details Again
-                      </button>
-
-                      <div className="flex gap-2 pt-2">
-                        <button className="flex-1 py-2 rounded-xl font-bold bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 text-xs">
-                          APPROVED
-                        </button>
-                        <button onClick={() => deletePlayer(p.id)} className="px-4 py-2 bg-white/5 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition cursor-pointer text-xs">DELETE</button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="col-span-full text-center py-20 text-gray-500 font-bold text-lg">
                     No approved players found matching your search.
