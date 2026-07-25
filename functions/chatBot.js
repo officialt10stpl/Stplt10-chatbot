@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(cors({ origin: true }));
 
 // ==========================================
-// 1. ALL-ROUNDER CHATGPT / GEMINI AI CHAT API
+// 1. ALL-ROUNDER CHATGPT / GEMINI AI & REFERRAL LOOKUP CHAT API
 // ==========================================
 app.post('/api/chat', async (req, res) => {
   try {
@@ -38,21 +38,55 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    // रेफरल स्टेटस चेक (डेटाबेस से कनेक्टेड)
-    if (lowerMsg.includes("रेफरल") || lowerMsg.includes("referral") || lowerMsg.includes("cashback") || lowerMsg.includes("कैशबैक")) {
-      if (!mobileNumber) {
-        return res.json({ reply: "भाई, अपना रजिस्टर्ड मोबाइल नंबर या Reg ID बताओ, तभी तो चेक करके बता पाऊंगा!" });
+    // =========================================================================
+    // 🎯 SMART REFERRAL & REG ID LOOKUP (यहाँ Reg ID या नंबर सीधे डेटाबेस से मैच होगा)
+    // =========================================================================
+    const isReferralQuery = lowerMsg.includes("रेफरल") || lowerMsg.includes("referral") || lowerMsg.includes("cashback") || lowerMsg.includes("कैशबैक") || userMsg.startsWith("STPL") || userMsg.includes("stpl-");
+
+    if (isReferralQuery) {
+      let targetId = mobileNumber;
+      const stplMatch = userMsg.match(/stpl-[a-z0-9]+/i) || userMsg.match(/stpl[a-z0-9]+/i);
+      if (stplMatch) {
+        targetId = stplMatch[0].toUpperCase();
       }
-      const playerRef = await db.collection('players').where('mobile', '==', mobileNumber).get();
-      if (!playerRef.empty) {
-        const pData = playerRef.docs[0].data();
-        return res.json({ reply: `🎯 भाई, आपके कुल सफल रेफरल ${pData.referralCount || 0} हैं। टारगेट पूरा होते ही कैशबैक मिल जाएगा!` });
+
+      if (!targetId) {
+        return res.json({ reply: "भाई, अपना रजिस्टर्ड मोबाइल नंबर या अपनी Reg ID (जैसे STPL-XXXXXX) यहाँ लिखकर भेजो, तभी तो डेटाबेस से चेक कर पाऊंगा!" });
+      }
+
+      let playerDoc = null;
+      
+      const queryByGenId = await db.collection('players').where('generatedId', '==', targetId).get();
+      if (!queryByGenId.empty) {
+        playerDoc = queryByGenId.docs[0].data();
       } else {
-        return res.json({ reply: "❌ भाई, इस नंबर से कोई रजिस्ट्रेशन नहीं मिला। सही नंबर या Reg ID बताओ।" });
+        const queryByMobile = await db.collection('players').where('mobile', '==', targetId).get();
+        if (!queryByMobile.empty) {
+          playerDoc = queryByMobile.docs[0].data();
+        }
+      }
+
+      if (playerDoc) {
+        const referralsSnapshot = await db.collection('players')
+          .where('referredBy', '==', playerDoc.generatedId)
+          .get();
+
+        let referredNames = [];
+        referralsSnapshot.forEach(doc => {
+          referredNames.push(doc.data().name);
+        });
+
+        return res.json({ 
+          reply: `🎯 भाई ${playerDoc.name}!\n🆔 Reg ID: ${playerDoc.generatedId}\n👥 कुल सफल रेफरल: ${referralsSnapshot.size} (${referredNames.length > 0 ? referredNames.join(', ') : 'अभी कोई नहीं'})` 
+        });
+      } else {
+        return res.json({ reply: `❌ भाई, "${targetId}" से हमारे डेटाबेस में कोई रजिस्ट्रेशन नहीं मिला। कृपया अपनी सही Reg ID या मोबाइल नंबर दर्ज करें।` });
       }
     }
 
-    // यूनिवर्सल ChatGPT/Gemini AI इंटेलिजेंस कॉल
+    // =========================================================================
+    // 2. UNIVERSAL CHATGPT/GEMINI AI INTELLIGENCE (बाकी दुनिया के सवालों के लिए)
+    // =========================================================================
     try {
       const systemPrompt = `
       You are an elite, world-class, super-intelligent all-rounder AI assistant (just like ChatGPT or Google Gemini). 
